@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "config.h"
+class SDL_Window;
 namespace emscchart {
 class DatasetController;
 
@@ -25,7 +26,7 @@ struct Metaset {
 
 class Chart {
  public:
-  Chart(std::string item, Configuration const& user_config);
+  Chart(SDL_Window& item, Configuration const& user_config);
   ~Chart();
   void Initialize();
 
@@ -37,6 +38,13 @@ class Chart {
   [[nodiscard]] auto GetDatasetMeta(unsigned int dataset_index)
       -> Metaset const&;
 
+  struct Context {
+    // Chart const& chart;
+    // std::string type;
+  };
+
+  [[nodiscard]] auto GetContext() const -> Context const&;
+
  private:
   [[nodiscard]] auto BuildOrUpdateControllers() const
       -> std::vector<std::unique_ptr<DatasetController>>;
@@ -47,6 +55,7 @@ class Chart {
 
   std::unique_ptr<Config> config_;
   std::vector<Metaset> metasets_;
+  Context context_;
   bool attached_ = false;
 };
 

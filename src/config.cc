@@ -22,10 +22,28 @@ auto initConfig(Configuration&& config) -> Configuration {
 }  // namespace
 Config::Config(Configuration config) : config_(initConfig(std::move(config))) {}
 
+void emscchart::Config::Update() {
+  ClearCache();
+  initOptions(config_);
+}
+
+void emscchart::Config::ClearCache() {
+  // this._scopeCache.clear();
+  // this._resolverCache.clear();
+}
+
 auto emscchart::Config::Data() const -> emscchart::Data const& {
   return config_.data;
 }
 
 void emscchart::Config::Data(emscchart::Data const& data) {
   config_.data = data;
+}
+
+auto emscchart::Config::Options() const -> emscchart::Options const& {
+  return config_.option;
+}
+
+void emscchart::Config::Options(emscchart::Options const& options) {
+  config_.option = options;
 }

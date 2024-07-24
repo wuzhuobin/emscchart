@@ -18,6 +18,7 @@ jobs:
         CMAKE_BUILD_TYPE: [Release, Debug]
         BUILD_TESTING: [OFF]
         BUILD_EXAMPLE: [ON]
+        emcmake: [emcmake, '']
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout
@@ -35,6 +36,6 @@ jobs:
             # Change Ownership
             # sudo chown -R $USER .
             # Configure
-            cmake -B build -S . -DCMAKE_BUILD_TYPE=${{ matrix.CMAKE_BUILD_TYPE }} -DBUILD_TESTING=${{ matrix.BUILD_TESTING }} -DBUILD_EXAMPLE=${{ matrix.BUILD_EXAMPLE }}
+            ${{ matrix.emcmake }} cmake -B build -S . -DCMAKE_BUILD_TYPE=${{ matrix.CMAKE_BUILD_TYPE }} -DBUILD_TESTING=${{ matrix.BUILD_TESTING }} -DBUILD_EXAMPLE=${{ matrix.BUILD_EXAMPLE }}
             # Build
             cmake --build build

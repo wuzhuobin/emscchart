@@ -1,14 +1,33 @@
 #include "controller.h"
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_video.h>
 #include <algorithm>
 #include <memory>
+#include <vector>
 #include "config.h"
 #include "dataset_controller.h"
 using emscchart::Chart;
 using emscchart::Config;
 
-emscchart::Chart::Chart(std::string item, Configuration const& user_config)
+emscchart::Chart::Chart(SDL_Window& item, Configuration const& user_config)
     : config_(std::make_unique<Config>(user_config)) {
-  // initialCanvas const = getCanvas(item);
+  auto* renderer = SDL_GetRenderer(&item);
+  // const initialCanvas = getCanvas(item);
+  // const existingChart = getChart(initialCanvas);
+  // if (existingChart) {
+  //   throw new Error(
+  //     'Canvas is already in use. Chart with ID \'' + existingChart.id + '\''
+  //     +
+  // 		' must be destroyed before the canvas with ID \'' +
+  // existingChart.canvas.id + '\' can be reused.'
+  //   );
+  // }
+
+  // const options = config.createResolver(config.chartOptionScopes(),
+  // this.getContext());
+
+  // this.platform = new (config.platform || _detectPlatform(initialCanvas))();
+  // this.platform.updateConfig(config);
 
   Initialize();
 
@@ -125,10 +144,12 @@ auto emscchart::Chart::GetDatasetMeta(unsigned int dataset_index)
     return *cit;
   }
 
-  // Metaset metaset;
+  Metaset metaset;
   // metasets_.push_back(metaset);
-  // return metaset;
+  return metaset;
 }
+
+Chart::Context const& emscchart::Chart::GetContext() const { return context_; }
 
 auto emscchart::Chart::BuildOrUpdateControllers() const
     -> std::vector<std::unique_ptr<emscchart::DatasetController>> {
