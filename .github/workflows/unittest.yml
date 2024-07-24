@@ -15,10 +15,10 @@ jobs:
     strategy:
       matrix:
         runner: [[ubuntu-latest]]
-        BUILD_TYPE: [Debug]
+        CMAKE_BUILD_TYPE: [Debug]
+        BUILD_TESTING: [ON]
+        BUILD_EXAMPLE: [OFF]
     runs-on: ${{ matrix.runner }}
-    # Disable temporarily
-    if: false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,15 +33,16 @@ jobs:
         with:
           runCmd: |
             # Change Ownership
-            sudo chown -R $USER .
-            # Run unittest
-            make unit
-            ./build/unittest
-            # Run coverage
-            make coverage
+            # sudo chown -R $USER .
+            # Configure
+            cmake -B build -S . -DCMAKE_BUILD_TYPE=${{ matrix.CMAKE_BUILD_TYPE }} -DBUILD_TESTING=${{ matrix.BUILD_TESTING }} -DBUILD_EXAMPLE=${{ matrix.BUILD_EXAMPLE }}
+            # Build
+            cmake --build build
+            # Test
+            ctest --test-dir build -VV
     
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: build/coverage
+      # - name: Upload coverage report
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage
+      #     path: build/coverage
