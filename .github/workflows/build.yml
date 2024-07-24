@@ -1,0 +1,40 @@
+name: build
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        runner: [[ubuntu-latest]]
+        CMAKE_BUILD_TYPE: [Release, Debug]
+        BUILD_TESTING: [OFF]
+        BUILD_EXAMPLE: [ON]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      - name: Run make ci-build in dev container
+        uses: devcontainers/ci@v0.3
+        with:
+          runCmd: |
+            # Change Ownership
+            # sudo chown -R $USER .
+            # Configure
+            cmake -B build -S . -DCMAKE_BUILD_TYPE=${{ matrix.CMAKE_BUILD_TYPE }} -DBUILD_TESTING=${{ matrix.BUILD_TESTING }} -DBUILD_EXAMPLE=${{ matrix.BUILD_EXAMPLE }}
+            # Build
+            cmake --build build

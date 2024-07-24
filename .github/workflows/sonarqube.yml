@@ -1,0 +1,96 @@
+name: sonarqube
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sonarqube:
+    strategy:
+      matrix:
+        runner: [[ubuntu-latest]]
+    runs-on: ${{ matrix.runner }}
+    # Disable temporarily
+    if: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install sonar-scanner and build-wrapper
+        uses: sonarsource/sonarqube-github-c-cpp@v1
+        id: install-sonar-scanner-and-build-wrapper
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          installation-path: ${{ github.workspace }}/.sonar
+      
+      - name: Create symbolic link for sonar-scanner and build-wrapper
+        run: |
+          ln -s $(realpath --relative-to ${{ github.workspace }} ${{ steps.install-sonar-scanner-and-build-wrapper.outputs.sonar-scanner-binary }} ) \
+            ${{ github.workspace }}/sonar-scanner
+          ln -s $(realpath --relative-to ${{ github.workspace }} ${{ steps.install-sonar-scanner-and-build-wrapper.outputs.build-wrapper-binary }} ) \
+            ${{ github.workspace }}/build-wrapper-linux-x86-64
+
+      - name: Run make ci-build in dev container
+        if: ${{ github.ref_name != 'main' && github.event_name == 'pull_request' }}
+        uses: devcontainers/ci@v0.3
+        with:
+          env: |
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            SONAR_TOKEN=${{ secrets.SONAR_TOKEN }}
+            SONAR_HOST_URL=${{ secrets.SONAR_HOST_URL }}
+          runCmd: |
+            # Change Ownership
+            sudo chown -R $USER .
+            # Run build wrapper
+            mkdir -p build/build-wrapper-output
+            ./build-wrapper-linux-x86-64 --out-dir build/build-wrapper-output make
+            ./build-wrapper-linux-x86-64 --out-dir build/build-wrapper-output make coverage
+            #SonarQube analysis pull request
+            ./sonar-scanner \
+              --define sonar.verbose=true \
+              --define sonar.projectKey=XXXX \
+              --define sonar.pullrequest.key=${{ github.event.pull_request.number }} \
+              --define sonar.pullrequest.branch=${{ github.head_ref }} \
+              --define sonar.pullrequest.base=${{ github.base_ref }} \
+              --define sonar.sources=src,include \
+              --define sonar.tests=test \
+              --define sonar.cfamily.compile-commands=build/build-wrapper-output/compile_commands.json \
+              --define sonar.cfamily.gcov.reportsPath=build
+
+
+      - name: Run make ci-build in dev container
+        if: ${{ github.ref_name == 'main' }}
+        uses: devcontainers/ci@v0.3
+        with:
+          env: |
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            SONAR_TOKEN=${{ secrets.SONAR_TOKEN }}
+            SONAR_HOST_URL=${{ secrets.SONAR_HOST_URL }}
+          runCmd: |
+            # Change Ownership
+            sudo chown -R $USER .
+            # Run build wrapper
+            mkdir -p build/build-wrapper-output
+            ./build-wrapper-linux-x86-64 --out-dir build/build-wrapper-output make
+            ./build-wrapper-linux-x86-64 --out-dir build/build-wrapper-output make coverage
+            #SonarQube analysis main branch
+            ./sonar-scanner \
+              --define sonar.verbose=true \
+              --define sonar.projectKey=XXXX \
+              --define sonar.branch.name=${{ github.ref_name }} \
+              --define sonar.sources=src,include \
+              --define sonar.tests=test \
+              --define sonar.cfamily.compile-commands=build/build-wrapper-output/compile_commands.json \
+              --define sonar.cfamily.gcov.reportsPath=build

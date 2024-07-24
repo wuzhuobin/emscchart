@@ -1,0 +1,5 @@
+add_executable(example1 ${PROJECT_SOURCE_DIR}/example/example1.cc)
+target_link_libraries(example1 PRIVATE ${PROJECT_NAME})
+if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    set_target_properties(example1 PROPERTIES SUFFIX .html)
+endif ()
