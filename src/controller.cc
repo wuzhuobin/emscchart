@@ -1,17 +1,22 @@
 #include "controller.h"
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_video.h>
 #include <algorithm>
+#include <functional>
+#include <iterator>
 #include <memory>
+#include <stdexcept>
+#include <string>
 #include <vector>
 #include "config.h"
 #include "dataset_controller.h"
-using emscchart::Chart;
+#include "element.h"
+#include "radar.h"
 using emscchart::Config;
+using emscchart::RadarController;
 
-emscchart::Chart::Chart(SDL_Window& item, Configuration const& user_config)
+emscchart::Chart::Chart(std::string const& item,
+                        Configuration const& user_config)
     : config_(std::make_unique<Config>(user_config)) {
-  auto* renderer = SDL_GetRenderer(&item);
+  (void)item;
   // const initialCanvas = getCanvas(item);
   // const existingChart = getChart(initialCanvas);
   // if (existingChart) {
@@ -30,7 +35,6 @@ emscchart::Chart::Chart(SDL_Window& item, Configuration const& user_config)
   // this.platform.updateConfig(config);
 
   Initialize();
-
   if (attached_) {
     Update();
   }
@@ -38,7 +42,7 @@ emscchart::Chart::Chart(SDL_Window& item, Configuration const& user_config)
 
 emscchart::Chart::~Chart() = default;
 
-void Chart::Initialize() {
+void emscchart::Chart::Initialize() {
   //   // Before init plugin notification
   //   this.notifyPlugins('beforeInit');
 
@@ -57,12 +61,11 @@ void Chart::Initialize() {
 }
 
 void emscchart::Chart::Update() {
-  //  const config = this.config;
-
-  // config.update();
+  config_->Update();
   // const options = this._options =
-  // config.createResolver(config.chartOptionScopes(), this.getContext()); const
-  // animsDisabled = this._animationsDisabled = !options.animation;
+  // config.createResolver(config.chartOptionScopes(), this.getContext());
+  // const animsDisabled = this._animationsDisabled = !options.animation;
+  auto anims_disabled = true;
 
   // this._updateScales();
   // this._checkEventBindings();
@@ -77,23 +80,28 @@ void emscchart::Chart::Update() {
   //   return;
   // }
 
-  // // Make sure dataset controllers are updated and new controllers are reset
-  // auto newControllers = BuildOrUpdateControllers();
+  // Make sure dataset controllers are updated and new controllers are reset
+  auto new_controllers = BuildOrUpdateControllers();
 
   // this.notifyPlugins('beforeElementsUpdate');
 
   // // Make sure all dataset controllers have correct meta data counts
   // let minPadding = 0;
   // for (let i = 0, ilen = this.data.datasets.length; i < ilen; i++) {
-  //   const {controller} = this.getDatasetMeta(i);
-  //   const reset = !animsDisabled && newControllers.indexOf(controller) ===
-  //   -1;
-  //   // New controllers will be reset after the layout pass, so we only want
-  //   to modify
-  //   // elements added to new datasets
-  //   controller.buildOrUpdateElements(reset);
-  //   minPadding = Math.max(+controller.getMaxOverflow(), minPadding);
-  // }
+  for (auto i = 0U; i < Data().datasets.size(); ++i) {
+    auto& controller = GetDatasetMeta(i).controller;
+    auto reset =
+        !anims_disabled &&
+        std::find_if(new_controllers.cbegin(), new_controllers.cend(),
+                     [&controller](auto new_controller) {
+                       return &(new_controller.get()) == controller.get();
+                     }) == new_controllers.cend();
+    (void)reset;
+    // New controllers will be reset after the layout pass, so we only want to
+    // modify elements added to new datasets
+    //   controller.buildOrUpdateElements(reset);
+    //   minPadding = Math.max(+controller.getMaxOverflow(), minPadding);
+  }
   // minPadding = this._minPadding = options.layout.autoPadding ? minPadding :
   // 0; this._updateLayout(minPadding);
 
@@ -120,83 +128,151 @@ void emscchart::Chart::Update() {
   //   this._updateHoverStyles(_active, _active, true);
   // }
 
-  // this.render();
+  Render();
+}
+
+void emscchart::Chart::Render() {
+  // if (this.notifyPlugins('beforeRender', {cancelable: true}) === false) {
+  //   return;
+  // }
+
+  // if (animator.has(this)) {
+  //   if (this.attached && !animator.running(this)) {
+  //     animator.start(this);
+  //   }
+  // } else {
+  Draw();
+  //   onAnimationsComplete({chart: this});
+  // }
+}
+
+void emscchart::Chart::Draw() {
+  // let i;
+  // if (this._resizeBeforeDraw) {
+  //   const {width, height} = this._resizeBeforeDraw;
+  //   this._resize(width, height);
+  //   this._resizeBeforeDraw = null;
+  // }
+  // this.clear();
+
+  // if (this.width <= 0 || this.height <= 0) {
+  //   return;
+  // }
+
+  // if (this.notifyPlugins('beforeDraw', {cancelable: true}) === false) {
+  //   return;
+  // }
+
+  // // Because of plugin hooks (before/afterDatasetsDraw), datasets can't
+  // // currently be part of layers. Instead, we draw
+  // // layers <= 0 before(default, backward compat), and the rest after
+  // const layers = this._layers;
+  // for (i = 0; i < layers.length && layers[i].z <= 0; ++i) {
+  //   layers[i].draw(this.chartArea);
+  // }
+
+  DrawDatasets();
+
+  // // Rest of layers
+  // for (; i < layers.length; ++i) {
+  //   layers[i].draw(this.chartArea);
+  // }
+
+  // this.notifyPlugins('afterDraw');
 }
 
 auto emscchart::Chart::Data() const -> emscchart::Data const& {
   return config_->Data();
 }
 
+auto emscchart::Chart::Data() -> emscchart::Data& { return config_->Data(); }
+
 void emscchart::Chart::Data(emscchart::Data const& data) {
   config_->Data(data);
 }
 
-auto emscchart::Chart::GetDatasetMeta(unsigned int dataset_index)
-    -> Metaset const& {
-  // return metasets_[dataset_index];
-  auto const& dataset = Data().datasets[dataset_index];
+auto emscchart::Chart::GetDatasetMeta(unsigned int dataset_index) -> Metaset& {
+  auto& dataset = Data().datasets[dataset_index];
 
-  auto cit = std::find_if(
-      metasets_.cbegin(), metasets_.cend(),
-      [&dataset](auto metaset) { return metaset.dataset == &dataset; });
+  auto iterator = std::find_if(
+      metasets_.begin(), metasets_.end(),
+      [&dataset](auto& metaset) { return metaset._dataset == &dataset; });
 
-  if (cit != metasets_.cend()) {
-    return *cit;
+  if (iterator != metasets_.end()) {
+    return *iterator;
   }
-
-  Metaset metaset;
-  // metasets_.push_back(metaset);
-  return metaset;
+  // meta = {
+  //   hidden: null,			// See isDatasetVisible() comment
+  //   xAxisID: null,
+  //   yAxisID: null,
+  //   order: dataset && dataset.order || 0,
+  //   index: datasetIndex,
+  //   _dataset: dataset,
+  //   _parsed: [],
+  //   _sorted: false
+  // };
+  metasets_.emplace_back(Metaset{.type = "",
+                                 .data = {},
+                                 .dataset = nullptr,
+                                 .controller = nullptr,
+                                 .index = dataset_index,
+                                 ._dataset = &dataset});
+  return metasets_.back();
 }
 
-Chart::Context const& emscchart::Chart::GetContext() const { return context_; }
+auto emscchart::Chart::GetSortedVisibleDatasetMetas()
+    -> std::vector<std::reference_wrapper<Metaset>> {
+  return std::vector<std::reference_wrapper<Metaset>>();
+}
 
-auto emscchart::Chart::BuildOrUpdateControllers() const
-    -> std::vector<std::unique_ptr<emscchart::DatasetController>> {
-  // const newControllers = [];
-  // const datasets = this.data.datasets;
+auto emscchart::Chart::GetContext() const -> Chart::Context const& {
+  return context_;
+}
+
+auto emscchart::Chart::BuildOrUpdateControllers()
+    -> std::vector<std::reference_wrapper<emscchart::DatasetController>> {
+  std::vector<std::reference_wrapper<emscchart::DatasetController>>
+      new_controllers;
   auto const datasets = Data().datasets;
-  // let i, ilen;
 
-  // this._removeUnreferencedMetasets();
-  for (auto const& dataset : datasets) {
+  RemoveUnreferencedMetasets();
+  for (auto i = 0U; i < datasets.size(); ++i) {
+    auto dataset = datasets[i];
+    auto const& type = !dataset.type.empty() ? dataset.type : config_->Type();
+
+    if (!GetDatasetMeta(i).type.empty() && GetDatasetMeta(i).type != type) {
+      DestroyDatasetMeta(i);
+    }
+    auto& meta = GetDatasetMeta(i);
+    meta.type = type;
+    //   meta.indexAxis = dataset.indexAxis || getIndexAxis(type, this.options);
+    //   meta.order = dataset.order || 0;
+    meta.index = i;
+    //   meta.label = '' + dataset.label;
+    //   meta.visible = this.isDatasetVisible(i);
+
+    if (meta.controller) {
+      //     meta.controller.updateIndex(i);
+      //     meta.controller.linkScales();
+    } else {
+      //     const ControllerClass = registry.getController(type);
+      //     const {datasetElementType, dataElementType} =
+      //     defaults.datasets[type]; Object.assign(ControllerClass, {
+      //       dataElementType: registry.getElement(dataElementType),
+      //       datasetElementType: datasetElementType &&
+      //       registry.getElement(datasetElementType)
+      //     });
+      if (type != RadarController::kId) {
+        throw std::runtime_error("Unsupported chart type: " + type);
+      }
+      // RadarController::dataset_element_factory = []() { return Point(); };
+      meta.controller = std::make_unique<RadarController>(*this, i);
+      new_controllers.push_back(std::ref(*meta.controller));
+    }
   }
 
-  // for (i = 0, ilen = datasets.length; i < ilen; i++) {
-  //   const dataset = datasets[i];
-  //   let meta = this.getDatasetMeta(i);
-  //   const type = dataset.type || this.config.type;
-
-  //   if (meta.type && meta.type !== type) {
-  //     this._destroyDatasetMeta(i);
-  //     meta = this.getDatasetMeta(i);
-  //   }
-  //   meta.type = type;
-  //   meta.indexAxis = dataset.indexAxis || getIndexAxis(type, this.options);
-  //   meta.order = dataset.order || 0;
-  //   meta.index = i;
-  //   meta.label = '' + dataset.label;
-  //   meta.visible = this.isDatasetVisible(i);
-
-  //   if (meta.controller) {
-  //     meta.controller.updateIndex(i);
-  //     meta.controller.linkScales();
-  //   } else {
-  //     const ControllerClass = registry.getController(type);
-  //     const {datasetElementType, dataElementType} =
-  //     defaults.datasets[type]; Object.assign(ControllerClass, {
-  //       dataElementType: registry.getElement(dataElementType),
-  //       datasetElementType: datasetElementType &&
-  //       registry.getElement(datasetElementType)
-  //     });
-  //     meta.controller = new ControllerClass(this, i);
-  //     newControllers.push(meta.controller);
-  //   }
-  // }
-
-  // this._updateMetasets();
-  // return newControllers;
-  return std::vector<std::unique_ptr<emscchart::DatasetController>>();
+  UpdateMetasets();
+  return new_controllers;
 }
 
 void emscchart::Chart::UpdateDatasets() {
@@ -217,3 +293,92 @@ void emscchart::Chart::UpdateDatasets() {
 }
 
 void emscchart::Chart::UpdateDataset() {}
+
+void emscchart::Chart::UpdateMetasets() {
+  // const metasets = this._metasets;
+  // const numData = this.data.datasets.length;
+  // const numMeta = metasets.length;
+
+  // metasets.sort((a, b) => a.index - b.index);
+  // if (numMeta > numData) {
+  //   for (let i = numData; i < numMeta; ++i) {
+  //     this._destroyDatasetMeta(i);
+  //   }
+  //   metasets.splice(numData, numMeta - numData);
+  // }
+  // this._sortedMetasets = metasets.slice(0).sort(compare2Level('order',
+  // 'index'));
+  sorted_metasets_.clear();
+  std::copy(metasets_.begin(), metasets_.end(),
+            std::back_inserter(sorted_metasets_));
+}
+
+void emscchart::Chart::DrawDatasets() {
+  // if (this.notifyPlugins('beforeDatasetsDraw', {cancelable: true}) === false)
+  // {
+  //   return;
+  // }
+
+  // const metasets = this.getSortedVisibleDatasetMetas();
+  // for (let i = metasets.length - 1; i >= 0; --i) {
+  //   this._drawDataset(metasets[i]);
+  // }
+
+  // this.notifyPlugins('afterDatasetsDraw');
+}
+
+void emscchart::Chart::DrawDataset(Metaset const& meta) {
+  (void)meta;
+  // const ctx = this.ctx;
+  // const clip = meta._clip;
+  // const useClip = !clip.disabled;
+  // const area = getDatasetArea(meta, this.chartArea);
+  // const args = {
+  //   meta,
+  //   index: meta.index,
+  //   cancelable: true
+  // };
+
+  // if (this.notifyPlugins('beforeDatasetDraw', args) === false) {
+  //   return;
+  // }
+
+  // if (useClip) {
+  //   clipArea(ctx, {
+  //     left: clip.left === false ? 0 : area.left - clip.left,
+  //     right: clip.right === false ? this.width : area.right + clip.right,
+  //     top: clip.top === false ? 0 : area.top - clip.top,
+  //     bottom: clip.bottom === false ? this.height : area.bottom + clip.bottom
+  //   });
+  // }
+
+  meta.controller->Draw();
+
+  // if (useClip) {
+  //   unclipArea(ctx);
+  // }
+
+  // args.cancelable = false;
+  // this.notifyPlugins('afterDatasetDraw', args);
+}
+
+void emscchart::Chart::DestroyDatasetMeta(unsigned int dataset_index) {
+  auto& meta = metasets_[dataset_index];
+  if (meta.controller != nullptr) {
+    //   meta.controller._destroy();
+  }
+  /// @todo Consider more efficient way.
+  metasets_.erase(metasets_.begin() + dataset_index);
+}
+
+void emscchart::Chart::RemoveUnreferencedMetasets() {
+  // const {_metasets: metasets, data: {datasets}} = this;
+  // if (metasets.length > datasets.length) {
+  //   delete this._stacks;
+  // }
+  // metasets.forEach((meta, index) => {
+  //   if (datasets.filter(x => x === meta._dataset).length === 0) {
+  //     this._destroyDatasetMeta(index);
+  //   }
+  // });
+}

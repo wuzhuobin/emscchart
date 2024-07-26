@@ -1,4 +1,5 @@
 #include "config.h"
+#include <string>
 #include <utility>
 using emscchart::Config;
 using emscchart::Configuration;
@@ -32,9 +33,17 @@ void emscchart::Config::ClearCache() {
   // this._resolverCache.clear();
 }
 
+auto emscchart::Config::Type() const -> std::string const& {
+  return config_.type;
+}
+
+void emscchart::Config::Type(std::string const& type) { config_.type = type; }
+
 auto emscchart::Config::Data() const -> emscchart::Data const& {
   return config_.data;
 }
+
+auto emscchart::Config::Data() -> emscchart::Data& { return config_.data; }
 
 void emscchart::Config::Data(emscchart::Data const& data) {
   config_.data = data;
