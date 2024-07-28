@@ -2,13 +2,17 @@
 #define EMSCCHART_CANVAS_H_
 
 #include <SDL2/SDL_render.h>
+#include <cinttypes>
 #include <optional>
 
 namespace emscchart {
 class CanvasRenderingContext;
 struct DrawPointOptions {
-  enum class PointStyle { kCircle } point_style;
-  double radius;
+  enum class PointStyle : std::uint8_t { kCircle } point_style;
+  // rotation?: number;
+  unsigned int radius;
+  // radius: number;
+  // borderWidth: number;
 };
 void DrawPoint(CanvasRenderingContext& ctx, DrawPointOptions const& options,
                unsigned int point_x, unsigned int point_y);

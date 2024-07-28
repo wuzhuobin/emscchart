@@ -2,8 +2,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
-#include <SDL2_gfxPrimitives.h>
-#include <iostream>
 
 // emscchart
 #include "canvas.h"
@@ -20,11 +18,11 @@ auto main(int argc, char* argv[]) -> int {
   auto* renderer = SDL_GetRenderer(window);
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-  emscchart::SDL2RenderingContext sdl2RenderingContext(*renderer);
+  emscchart::SDL2RenderingContext sdl2_rendering_context(*renderer);
   emscchart::DrawPoint(
-      sdl2RenderingContext,
+      sdl2_rendering_context,
       emscchart::DrawPointOptions{
-          emscchart::DrawPointOptions::PointStyle::kCircle, 5.0},
+          emscchart::DrawPointOptions::PointStyle::kCircle, 5U},
       320, 240);
 
   SDL_RenderPresent(renderer);

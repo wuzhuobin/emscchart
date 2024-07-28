@@ -7,7 +7,8 @@ namespace emscchart {
 class CanvasRenderingContext {
  public:
   virtual ~CanvasRenderingContext() = default;
-  virtual void Circle(uint16_t point_x, uint16_t point_y, uint16_t radius) = 0;
+  virtual void Circle(std::uint16_t point_x, std::uint16_t point_y,
+                      std::uint16_t radius) = 0;
 };
 }  // namespace emscchart
 

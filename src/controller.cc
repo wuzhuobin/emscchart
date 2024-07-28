@@ -229,6 +229,8 @@ auto emscchart::Chart::GetContext() const -> Chart::Context const& {
   return context_;
 }
 
+void emscchart::Chart::BuildOrUpdateScales() {}
+
 auto emscchart::Chart::BuildOrUpdateControllers()
     -> std::vector<std::reference_wrapper<emscchart::DatasetController>> {
   std::vector<std::reference_wrapper<emscchart::DatasetController>>
