@@ -41,9 +41,10 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
 
     message(STATUS "Emscripten detected")
     target_link_options(${PROJECT_NAME} PUBLIC --use-port=sdl2
-                        --use-port=sdl2_gfx)
-    target_compile_options(${PROJECT_NAME} PUBLIC --use-port=sdl2
-                                                  --use-port=sdl2_gfx)
+                        --use-port=sdl2_gfx -fwasm-exceptions)
+    target_compile_options(
+        ${PROJECT_NAME} PUBLIC --use-port=sdl2 --use-port=sdl2_gfx
+                               -fwasm-exceptions)
 
 else ()
 

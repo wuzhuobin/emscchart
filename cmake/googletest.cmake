@@ -1,4 +1,8 @@
 include(FetchContent)
+if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    add_link_options(-fwasm-exceptions)
+    add_compile_options(-fwasm-exceptions)
+endif ()
 FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
