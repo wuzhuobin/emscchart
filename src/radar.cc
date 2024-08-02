@@ -5,7 +5,7 @@ using emscchart::RadarController;
 RadarController::RadarController(Chart& chart, unsigned int dataset_index)
     : DatasetController(chart, dataset_index) {}
 
-void emscchart::RadarController::Update() {
+void emscchart::RadarController::Update(UpdateMode mode) {
   // const meta = this._cachedMeta;
   // const line = meta.dataset;
   // const points = meta.data || [];

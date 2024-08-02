@@ -17,7 +17,9 @@ class DatasetController {
   DatasetController(Chart& chart, unsigned int dataset_index);
   virtual ~DatasetController() = default;
   void Initialize();
-  virtual void Update() = 0;
+  enum class UpdateMode : std::uint8_t { kDefault, kReset };
+  void Update() { Update(UpdateMode::kDefault); }
+  virtual void Update(UpdateMode mode) = 0;
   void Draw();
 
   void AddElements();

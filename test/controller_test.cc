@@ -1,15 +1,18 @@
 #include "controller.h"
 #include <gtest/gtest.h>
+#include <functional>
 #include <stdexcept>
+#include <string_view>
+#include <tuple>
+#include "bubble.h"
 #include "radar.h"
 
 using namespace testing;
 using namespace emscchart;
 
-class ControllerTest : public Test {};
+class ChartTest : public Test {};
 
-TEST_F(ControllerTest,
-       GetDatasetMetaShouldReturnNewMetaWhenDatasetIndexIsInvalid) {
+TEST_F(ChartTest, GetDatasetMetaShouldReturnNewMetaWhenDatasetIndexIsInvalid) {
   // Arrange
   Chart chart{"item", Configuration()};
   // Act
@@ -18,8 +21,7 @@ TEST_F(ControllerTest,
   EXPECT_FALSE(meta._dataset);
 }
 
-TEST_F(ControllerTest,
-       BuildOrUpdateControllersShouldNoControllerWhenDatasetIs0) {
+TEST_F(ChartTest, BuildOrUpdateControllersShouldNoControllerWhenDatasetIs0) {
   // Arrange
   Chart chart{"item", Configuration()};
 
@@ -31,25 +33,8 @@ TEST_F(ControllerTest,
 }
 
 TEST_F(
-    ControllerTest,
-    BuildOrUpdateControllersShouldBuildRadarControllerWhenConfigurationIsRadarDatasetTypeIsEmpty) {
-  // Arrange
-  Chart chart{"item", Configuration{.type = "radar",
-                                    .data = {.datasets = {{}}, .labels = {}},
-                                    .option = {}}};
-
-  // Act
-  auto new_controllers = chart.BuildOrUpdateControllers();
-
-  // Assert
-  EXPECT_EQ(new_controllers.size(), 1);
-  auto& new_controller = new_controllers[0].get();
-  EXPECT_NO_THROW(dynamic_cast<RadarController&>(new_controller));
-}
-
-TEST_F(
-    ControllerTest,
-    BuildOrUpdateControllersShouldBuildRadarControllerWhenConfigurationIsNotRadarDatasetTypeIsEmpty) {
+    ChartTest,
+    BuildOrUpdateControllersShouldBuildRadarControllerWhenConfigurationIsNotValidDatasetTypeIsEmpty) {
   // Arrange
   Chart chart{"item", Configuration{.type = "abc",
                                     .data = {.datasets = {{}}, .labels = {}},
@@ -60,25 +45,8 @@ TEST_F(
                std::runtime_error);
 }
 
-TEST_F(ControllerTest,
-       BuildOrUpdateControllersShouldBuildRadarControllerWhenDatasetIsRadar) {
-  // Arrange
-  Chart chart{"item", Configuration{.type = {},
-                                    .data = {.datasets = {{.type = "radar"}},
-                                             .labels = {}},
-                                    .option = {}}};
-
-  // Act
-  auto new_controllers = chart.BuildOrUpdateControllers();
-
-  // Assert
-  EXPECT_EQ(new_controllers.size(), 1);
-  auto& new_controller = new_controllers[0].get();
-  EXPECT_NO_THROW(dynamic_cast<RadarController&>(new_controller));
-}
-
-TEST_F(ControllerTest,
-       BuildOrUpdateControllersShouldThrowExceptionWhenDatasetIsNotRadar) {
+TEST_F(ChartTest,
+       BuildOrUpdateControllersShouldThrowExceptionWhenDatasetIsNotValid) {
   // Arrange
   Chart chart{"item", Configuration{
                           .type = {},
@@ -88,4 +56,61 @@ TEST_F(ControllerTest,
   // Act & Assert
   EXPECT_THROW(auto new_controllers = chart.BuildOrUpdateControllers(),
                std::runtime_error);
+}
+
+using ControllerCast = std::function<DatasetController&(DatasetController&)>;
+using ChartTestWithConfigTypeParam =
+    std::tuple<std::string_view, ControllerCast>;
+class ChartTestWithConfigType
+    : public TestWithParam<ChartTestWithConfigTypeParam> {};
+
+INSTANTIATE_TEST_SUITE_P(
+    , ChartTestWithConfigType,
+    Values(std::make_tuple(RadarController::kId,
+                           [](DatasetController& controller)
+                               -> DatasetController& {
+                             return dynamic_cast<RadarController&>(controller);
+                           }),
+           std::make_tuple(BubbleController::kId,
+                           [](DatasetController& controller)
+                               -> DatasetController& {
+                             return dynamic_cast<BubbleController&>(controller);
+                           })));
+
+TEST_P(
+    ChartTestWithConfigType,
+    BuildOrUpdateControllersShouldBuildValidControllerWhenConfigurationTypeIsValidAndDatasetTypeIsEmpty) {
+  // Arrange
+  auto [type, cast] = GetParam();
+  Chart chart{"item", Configuration{.type = std::string(type),
+                                    .data = {.datasets = {{}}, .labels = {}},
+                                    .option = {}}};
+
+  // Act
+  auto new_controllers = chart.BuildOrUpdateControllers();
+
+  // Assert
+  EXPECT_EQ(new_controllers.size(), 1);
+  auto& new_controller = new_controllers[0].get();
+  EXPECT_NO_THROW(cast(new_controller));
+}
+
+TEST_P(
+    ChartTestWithConfigType,
+    BuildOrUpdateControllersShouldBuildValidControllerWhenDatasetTypeIsValid) {
+  // Arrange
+  auto [type, cast] = GetParam();
+  Chart chart{"item",
+              Configuration{.type = {},
+                            .data = {.datasets = {{.type = std::string(type)}},
+                                     .labels = {}},
+                            .option = {}}};
+
+  // Act
+  auto new_controllers = chart.BuildOrUpdateControllers();
+
+  // Assert
+  EXPECT_EQ(new_controllers.size(), 1);
+  auto& new_controller = new_controllers[0].get();
+  EXPECT_NO_THROW(cast(new_controller));
 }
