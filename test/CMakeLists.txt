@@ -8,6 +8,9 @@ target_link_libraries(
     ${PROJECT_NAME}_test PRIVATE ${PROJECT_NAME} GTest::gtest GTest::gtest_main
                                  GTest::gmock GTest::gmock_main)
 
+target_include_directories(${PROJECT_NAME}_test
+                           PRIVATE ${PROJECT_SOURCE_DIR}/src)
+
 target_compile_definitions(${PROJECT_NAME}_test PRIVATE TESTING)
 
 include(GoogleTest)

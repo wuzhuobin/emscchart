@@ -14,6 +14,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 option(BUILD_TESTING "Build Testing" OFF)
 option(BUILD_EXAMPLE "Build Example" OFF)
+option(COMPILE_WARNING_AS_ERROR "Compile Warning as Error" OFF)
 
 file(GLOB_RECURSE INC ${PROJECT_SOURCE_DIR}/include/*.h)
 file(GLOB_RECURSE SRC ${PROJECT_SOURCE_DIR}/src/*.[c|h]*)
@@ -25,13 +26,25 @@ target_include_directories(
     PUBLIC ${PROJECT_SOURCE_DIR}/include
     PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
+target_compile_options(
+    ${PROJECT_NAME}
+    PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/W4>
+           $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>)
+
+if (COMPILE_WARNING_AS_ERROR)
+    target_compile_options(
+        ${PROJECT_NAME} PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/WX>
+                               $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Werror>)
+endif ()
+
 if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
 
     message(STATUS "Emscripten detected")
     target_link_options(${PROJECT_NAME} PUBLIC --use-port=sdl2
-                        --use-port=sdl2_gfx)
-    target_compile_options(${PROJECT_NAME} PUBLIC --use-port=sdl2
-                                                  --use-port=sdl2_gfx)
+                        --use-port=sdl2_gfx -fwasm-exceptions)
+    target_compile_options(
+        ${PROJECT_NAME} PUBLIC --use-port=sdl2 --use-port=sdl2_gfx
+                               -fwasm-exceptions)
 
 else ()
 

@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <array>
 #include "controller.h"
+#include "helper.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -90,19 +91,7 @@ int main(void) {
 
   SDL_RenderPresent(renderer);
 
-  SDL_Event event;
-  auto exit = false;
-  for (; !exit;) {
-    SDL_PollEvent(&event);
-    if (event.type == SDL_QUIT) {
-      exit = true;
-      break;
-    }
-    SDL_Delay(10);
-#ifdef __EMSCRIPTEN__
-    emscripten_sleep(10);
-#endif
-  }
+  Loop();
 
   SDL_DestroyWindow(window);
   SDL_Quit();

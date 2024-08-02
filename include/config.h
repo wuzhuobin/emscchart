@@ -5,7 +5,9 @@
 #include <vector>
 
 namespace emscchart {
-struct Dataset {};
+struct Dataset {
+  std::string type;
+};
 using Label = std::string;
 struct Data {
   std::vector<Dataset> datasets;
@@ -18,8 +20,11 @@ struct Options {
   } scales;
 };
 struct Configuration {
+  // platform;
+  std::string type;
   Data data;
   Options option;
+  // plugins;
 };
 
 class Config {
@@ -29,7 +34,10 @@ class Config {
   void Update();
   void ClearCache();
 
+  [[nodiscard]] auto Type() const -> std::string const&;
+  void Type(std::string const& type);
   [[nodiscard]] auto Data() const -> emscchart::Data const&;
+  [[nodiscard]] auto Data() -> emscchart::Data&;
   void Data(emscchart::Data const& data);
   [[nodiscard]] auto Options() const -> emscchart::Options const&;
   void Options(emscchart::Options const& options);

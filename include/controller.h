@@ -4,39 +4,42 @@
 #include <string>
 #include <vector>
 #include "config.h"
-class SDL_Window;
 namespace emscchart {
 class DatasetController;
-
+class Element;
 struct Metaset {
-  // type: null,
-  // data: [],
-  // dataset: null,
-  Dataset* dataset = nullptr;
-  // controller: null,
+  std::string type;
+  std::vector<std::unique_ptr<Element>> data;
+  std::unique_ptr<Element> dataset;
+  std::unique_ptr<emscchart::DatasetController> controller;
   // hidden: null,			// See isDatasetVisible() comment
   // xAxisID: null,
   // yAxisID: null,
   // order: dataset && dataset.order || 0,
   // index: datasetIndex,
-  // _dataset: dataset,
+  unsigned int index;
+  Dataset* _dataset;
   // _parsed: [],
   // _sorted: false
 };
 
 class Chart {
  public:
-  Chart(SDL_Window& item, Configuration const& user_config);
+  Chart(std::string const& item, Configuration const& user_config);
   ~Chart();
   void Initialize();
 
   void Update();
+  void Render();
+  void Draw();
 
   [[nodiscard]] auto Data() const -> emscchart::Data const&;
+  [[nodiscard]] auto Data() -> emscchart::Data&;
   void Data(emscchart::Data const& data);
 
-  [[nodiscard]] auto GetDatasetMeta(unsigned int dataset_index)
-      -> Metaset const&;
+  [[nodiscard]] auto GetDatasetMeta(unsigned int dataset_index) -> Metaset&;
+  [[nodiscard]] auto GetSortedVisibleDatasetMetas() const
+      -> std::vector<std::reference_wrapper<Metaset>>;
 
   struct Context {
     // Chart const& chart;
@@ -44,17 +47,28 @@ class Chart {
   };
 
   [[nodiscard]] auto GetContext() const -> Context const&;
+  void BuildOrUpdateScales();
+  auto BuildOrUpdateControllers()
+      -> std::vector<std::reference_wrapper<DatasetController>>;
 
  private:
-  [[nodiscard]] auto BuildOrUpdateControllers() const
-      -> std::vector<std::unique_ptr<DatasetController>>;
-
   void UpdateDatasets();
   void UpdateDataset();
   void UpdateScales();
+  void UpdateMetasets();
+
+  void DrawDatasets();
+  void DrawDataset(Metaset const& meta);
+
+  void DestroyDatasetMeta(unsigned int dataset_index);
+  void RemoveUnreferencedMetasets();
+
+  [[nodiscard]] auto GetSortedDatasetMetas(bool filter_visible) const
+      -> std::vector<std::reference_wrapper<Metaset>>;
 
   std::unique_ptr<Config> config_;
   std::vector<Metaset> metasets_;
+  std::vector<std::reference_wrapper<Metaset>> sorted_metasets_;
   Context context_;
   bool attached_ = false;
 };
