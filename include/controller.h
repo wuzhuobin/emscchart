@@ -38,7 +38,7 @@ class Chart {
   void Data(emscchart::Data const& data);
 
   [[nodiscard]] auto GetDatasetMeta(unsigned int dataset_index) -> Metaset&;
-  auto GetSortedVisibleDatasetMetas()
+  [[nodiscard]] auto GetSortedVisibleDatasetMetas() const
       -> std::vector<std::reference_wrapper<Metaset>>;
 
   struct Context {
@@ -62,6 +62,9 @@ class Chart {
 
   void DestroyDatasetMeta(unsigned int dataset_index);
   void RemoveUnreferencedMetasets();
+
+  [[nodiscard]] auto GetSortedDatasetMetas(bool filter_visible) const
+      -> std::vector<std::reference_wrapper<Metaset>>;
 
   std::unique_ptr<Config> config_;
   std::vector<Metaset> metasets_;

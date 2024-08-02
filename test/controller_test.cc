@@ -34,7 +34,9 @@ TEST_F(
     ControllerTest,
     BuildOrUpdateControllersShouldBuildRadarControllerWhenConfigurationIsRadarDatasetTypeIsEmpty) {
   // Arrange
-  Chart chart{"item", Configuration{.type = "radar", .data = {.datasets{{}}}}};
+  Chart chart{"item", Configuration{.type = "radar",
+                                    .data = {.datasets = {{}}, .labels = {}},
+                                    .option = {}}};
 
   // Act
   auto new_controllers = chart.BuildOrUpdateControllers();
@@ -49,7 +51,9 @@ TEST_F(
     ControllerTest,
     BuildOrUpdateControllersShouldBuildRadarControllerWhenConfigurationIsNotRadarDatasetTypeIsEmpty) {
   // Arrange
-  Chart chart{"item", Configuration{.type = "abc", .data = {.datasets{{}}}}};
+  Chart chart{"item", Configuration{.type = "abc",
+                                    .data = {.datasets = {{}}, .labels = {}},
+                                    .option = {}}};
 
   // Act & Assert
   EXPECT_THROW(auto new_controllers = chart.BuildOrUpdateControllers(),
@@ -59,7 +63,10 @@ TEST_F(
 TEST_F(ControllerTest,
        BuildOrUpdateControllersShouldBuildRadarControllerWhenDatasetIsRadar) {
   // Arrange
-  Chart chart{"item", Configuration{.data = {.datasets{{.type = "radar"}}}}};
+  Chart chart{"item", Configuration{.type = {},
+                                    .data = {.datasets = {{.type = "radar"}},
+                                             .labels = {}},
+                                    .option = {}}};
 
   // Act
   auto new_controllers = chart.BuildOrUpdateControllers();
@@ -73,7 +80,10 @@ TEST_F(ControllerTest,
 TEST_F(ControllerTest,
        BuildOrUpdateControllersShouldThrowExceptionWhenDatasetIsNotRadar) {
   // Arrange
-  Chart chart{"item", Configuration{.data = {.datasets{{.type = "abc"}}}}};
+  Chart chart{"item", Configuration{
+                          .type = {},
+                          .data = {.datasets = {{.type = "abc"}}, .labels = {}},
+                          .option = {}}};
 
   // Act & Assert
   EXPECT_THROW(auto new_controllers = chart.BuildOrUpdateControllers(),

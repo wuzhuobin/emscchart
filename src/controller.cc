@@ -6,9 +6,12 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "bubble.h"
 #include "config.h"
 #include "dataset_controller.h"
 #include "element.h"
+#include "line.h"
+#include "point.h"
 #include "radar.h"
 using emscchart::Config;
 using emscchart::RadarController;
@@ -220,9 +223,9 @@ auto emscchart::Chart::GetDatasetMeta(unsigned int dataset_index) -> Metaset& {
   return metasets_.back();
 }
 
-auto emscchart::Chart::GetSortedVisibleDatasetMetas()
+auto emscchart::Chart::GetSortedVisibleDatasetMetas() const
     -> std::vector<std::reference_wrapper<Metaset>> {
-  return std::vector<std::reference_wrapper<Metaset>>();
+  return GetSortedDatasetMetas(true);
 }
 
 auto emscchart::Chart::GetContext() const -> Chart::Context const& {
@@ -264,12 +267,20 @@ auto emscchart::Chart::BuildOrUpdateControllers()
       //       datasetElementType: datasetElementType &&
       //       registry.getElement(datasetElementType)
       //     });
-      if (type != RadarController::kId) {
+      ///< @todo using dependency injection
+      if (type == RadarController::kId) {
+        DatasetController::data_element_factory_ = &std::make_unique<Point>;
+        DatasetController::dataset_element_factory_ = &std::make_unique<Line>;
+        meta.controller = std::make_unique<RadarController>(*this, i);
+        new_controllers.push_back(std::ref(*meta.controller));
+      } else if (type == BubbleController::kId) {
+        DatasetController::data_element_factory_ = &std::make_unique<Point>;
+        DatasetController::dataset_element_factory_ = nullptr;
+        meta.controller = std::make_unique<BubbleController>(*this, i);
+        new_controllers.push_back(std::ref(*meta.controller));
+      } else {
         throw std::runtime_error("Unsupported chart type: " + type);
       }
-      // RadarController::dataset_element_factory = []() { return Point(); };
-      meta.controller = std::make_unique<RadarController>(*this, i);
-      new_controllers.push_back(std::ref(*meta.controller));
     }
   }
 
@@ -310,6 +321,7 @@ void emscchart::Chart::UpdateMetasets() {
   // }
   // this._sortedMetasets = metasets.slice(0).sort(compare2Level('order',
   // 'index'));
+  ///< @todo Do real sorting.
   sorted_metasets_.clear();
   std::copy(metasets_.begin(), metasets_.end(),
             std::back_inserter(sorted_metasets_));
@@ -321,16 +333,15 @@ void emscchart::Chart::DrawDatasets() {
   //   return;
   // }
 
-  // const metasets = this.getSortedVisibleDatasetMetas();
-  // for (let i = metasets.length - 1; i >= 0; --i) {
-  //   this._drawDataset(metasets[i]);
-  // }
+  auto const& metasets = GetSortedVisibleDatasetMetas();
+  for (auto const& metaset : metasets) {
+    DrawDataset(metaset);
+  }
 
   // this.notifyPlugins('afterDatasetsDraw');
 }
 
 void emscchart::Chart::DrawDataset(Metaset const& meta) {
-  (void)meta;
   // const ctx = this.ctx;
   // const clip = meta._clip;
   // const useClip = !clip.disabled;
@@ -383,4 +394,18 @@ void emscchart::Chart::RemoveUnreferencedMetasets() {
   //     this._destroyDatasetMeta(index);
   //   }
   // });
+}
+
+auto emscchart::Chart::GetSortedDatasetMetas(bool filter_visible) const
+    -> std::vector<std::reference_wrapper<Metaset>> {
+  std::vector<std::reference_wrapper<Metaset>> result;
+  (void)filter_visible;
+  result.reserve(sorted_metasets_.size());
+  for (auto const& metaset : sorted_metasets_) {
+    // if (!filter_visible || metaset.visible) {
+    result.push_back(metaset);
+    // }
+  }
+
+  return result;
 }
