@@ -1,6 +1,7 @@
+#include "bubble.h"
 #include "canvas.h"
+#include "controller.h"
 #include "helper.h"
-#include "sdl2_rendering_context.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
@@ -15,12 +16,9 @@ auto main(int argc, char* argv[]) -> int {
   auto* renderer = SDL_GetRenderer(window);
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-  emscchart::SDL2RenderingContext sdl2_rendering_context(*renderer);
-  emscchart::DrawPoint(
-      sdl2_rendering_context,
-      emscchart::DrawPointOptions{
-          emscchart::DrawPointOptions::PointStyle::kCircle, 5U},
-      320, 240);
+  emscchart::Chart chart(SDL_GetWindowID(window), {});
+
+  emscchart::BubbleController bubble(chart, 0);
 
   SDL_RenderPresent(renderer);
   Loop();

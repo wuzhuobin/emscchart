@@ -1,4 +1,5 @@
 #include "bubble.h"
+#include "controller.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -9,4 +10,9 @@ class BubbleControllerTest : public Test {};
 
 TEST_F(BubbleControllerTest, IdShouldBeCorrect) {
   EXPECT_EQ(BubbleController::kId, "bubble");
+}
+
+TEST_F(BubbleControllerTest, ConstructorShouldWork) {
+  Chart chart{0, Configuration()};
+  EXPECT_NO_THROW(BubbleController const controller(chart, 0));
 }

@@ -9,6 +9,7 @@ struct Metaset;
 struct Dataset;
 class Chart;
 class Element;
+class CanvasRenderingContext;
 class DatasetController {
  public:
   using ElementFactory = std::function<std::unique_ptr<Element>()>;
@@ -20,15 +21,25 @@ class DatasetController {
   enum class UpdateMode : std::uint8_t { kDefault, kReset };
   void Update() { Update(UpdateMode::kDefault); }
   virtual void Update(UpdateMode mode) = 0;
+  virtual void UpdateElements(std::vector<std::unique_ptr<Element>>& elements,
+                              unsigned int start, unsigned int count,
+                              UpdateMode mode) = 0;
   void Draw();
 
   void AddElements();
   void BuildOrUpdateElements(bool resetNewElement);
   //  GetDataset();
   [[nodiscard]] auto GetMeta() const -> Metaset&;
+  [[nodiscard]] auto CachedMeta() const -> Metaset const&;
+  [[nodiscard]] auto CachedMeta() -> Metaset&;
+
+ protected:
+  virtual void UpdateElement(Element& element, unsigned int index,
+                             std::string properties, UpdateMode mode);
 
  private:
   Chart& chart_;
+  CanvasRenderingContext& ctx_;
   unsigned int index_;
   Metaset& cached_meta_;
   ElementFactory dataset_element_type_;
