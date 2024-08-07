@@ -1,10 +1,10 @@
 #include "canvas.h"
+#include "canvas_rendering_context.h"
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_stdinc.h>
-#include <SDL2_gfxPrimitives.h>
 #include <cmath>
 #include <optional>
-#include "canvas_rendering_context.h"
+#include <SDL2_gfxPrimitives.h>
 
 void emscchart::DrawPoint(CanvasRenderingContext& ctx,
                           DrawPointOptions const& options, unsigned int point_x,

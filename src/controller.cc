@@ -1,11 +1,4 @@
 #include "controller.h"
-#include <algorithm>
-#include <functional>
-#include <iterator>
-#include <memory>
-#include <stdexcept>
-#include <string>
-#include <vector>
 #include "bubble.h"
 #include "config.h"
 #include "dataset_controller.h"
@@ -13,6 +6,13 @@
 #include "line.h"
 #include "point.h"
 #include "radar.h"
+#include <algorithm>
+#include <functional>
+#include <iterator>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <vector>
 using emscchart::Config;
 using emscchart::RadarController;
 

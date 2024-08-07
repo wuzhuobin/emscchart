@@ -1,7 +1,7 @@
 #include "dataset_controller.h"
-#include <functional>
 #include "controller.h"
 #include "element.h"
+#include <functional>
 
 using emscchart::Element;
 

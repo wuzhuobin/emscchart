@@ -1,9 +1,9 @@
 #ifndef EMSCCHART_CHART_H_
 #define EMSCCHART_CHART_H_
+#include "config.h"
 #include <memory>
 #include <string>
 #include <vector>
-#include "config.h"
 namespace emscchart {
 class DatasetController;
 class Element;

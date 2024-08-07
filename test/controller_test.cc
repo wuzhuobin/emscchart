@@ -1,11 +1,11 @@
 #include "controller.h"
+#include "bubble.h"
+#include "radar.h"
 #include <gtest/gtest.h>
 #include <functional>
 #include <stdexcept>
 #include <string_view>
 #include <tuple>
-#include "bubble.h"
-#include "radar.h"
 
 using namespace testing;
 using namespace emscchart;
