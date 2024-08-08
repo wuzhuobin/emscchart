@@ -1,7 +1,7 @@
 #include "dataset_controller.h"
-#include <functional>
 #include "controller.h"
 #include "element.h"
+#include <functional>
 
 using emscchart::Element;
 
@@ -12,6 +12,7 @@ emscchart::DatasetController::ElementFactory
 emscchart::DatasetController::DatasetController(Chart& chart,
                                                 unsigned int dataset_index)
     : chart_(chart),
+      ctx_(chart.Ctx()),
       index_(dataset_index),
       cached_meta_(GetMeta()),
       dataset_element_type_(dataset_element_factory_),
@@ -60,7 +61,7 @@ void emscchart::DatasetController::Draw() {
   // const drawActiveElementsOnTop = this.options.drawActiveElementsOnTop;
   // let i;
 
-  if (cached_meta_._dataset) {
+  if (cached_meta_.dataset) {
     // cached_meta_.dataset.draw(ctx, area, start, count);
   }
 
@@ -85,7 +86,6 @@ void emscchart::DatasetController::AddElements() {
   // this._dataCheck();
 
   if (data_element_type_) {
-    // meta.dataset = new this.datasetElementType();
     cached_meta_.dataset = data_element_type_();
   }
 }
@@ -123,4 +123,27 @@ void emscchart::DatasetController::BuildOrUpdateElements(bool resetNewElement) {
 
 auto emscchart::DatasetController::GetMeta() const -> Metaset& {
   return chart_.GetDatasetMeta(index_);
+}
+
+auto emscchart::DatasetController::CachedMeta() const -> Metaset const& {
+  return cached_meta_;
+}
+
+auto emscchart::DatasetController::CachedMeta() -> Metaset& {
+  return cached_meta_;
+}
+
+void emscchart::DatasetController::UpdateElement(Element& element,
+                                                 unsigned int index,
+                                                 std::string properties,
+                                                 UpdateMode mode) {
+  (void)element;
+  (void)index;
+  (void)properties;
+  (void)mode;
+  // if (isDirectUpdateMode(mode)) {
+  //   Object.assign(element, properties);
+  // } else {
+  //   this._resolveAnimations(index, mode).update(element, properties);
+  // }
 }

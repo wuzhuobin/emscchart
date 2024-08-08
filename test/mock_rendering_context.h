@@ -1,8 +1,8 @@
 #ifndef EMSCCHART_MOCK_RENDERING_CONTEXT_H_
 #define EMSCCHART_MOCK_RENDERING_CONTEXT_H_
 
-#include <gmock/gmock.h>
 #include "canvas_rendering_context.h"
+#include <gmock/gmock.h>
 
 namespace emscchart {
 class MockCanvasRenderingContext : public CanvasRenderingContext {

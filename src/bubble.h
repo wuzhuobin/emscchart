@@ -6,10 +6,13 @@
 namespace emscchart {
 class BubbleController : public DatasetController {
  public:
+  static constexpr std::string_view kId = "bubble";
   BubbleController(Chart& chart, unsigned int dataset_index)
       : DatasetController(chart, dataset_index) {}
-  static constexpr std::string_view kId = "bubble";
-  void Update(UpdateMode mode) override {}
+  void Update(UpdateMode mode) override;
+  void UpdateElements(std::vector<std::unique_ptr<Element>>& elements,
+                      unsigned int start, unsigned int count,
+                      UpdateMode mode) override;
 };
 }  // namespace emscchart
 

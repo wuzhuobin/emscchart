@@ -1,7 +1,7 @@
 #include "point.h"
+#include "mock_rendering_context.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include "mock_rendering_context.h"
 
 using namespace testing;
 using namespace emscchart;

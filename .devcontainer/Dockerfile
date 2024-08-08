@@ -16,10 +16,28 @@ RUN if [ "${REINSTALL_CMAKE_VERSION_FROM_SOURCE}" != "none" ]; then \
 # [Optional] Uncomment this section to install additional packages.
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
   && apt-get -y install --no-install-recommends \
+  # sdl2
   libsdl2-dev \
   libsdl2-gfx-dev \
+  # cpp code coverage
   lcov \
-  clang-format \
-  clang-tidy \
+  # Required for cmake_format
   pip \
-  && pip install cmake_format
+  # Required for llvm.sh
+  lsb-release \
+  wget \
+  software-properties-common \
+  gnupg
+
+# Install cmake_format
+RUN pip install cmake_format
+
+# Install clang-format-18 and clang-tidy-18
+# Same version as vscode
+RUN wget https://apt.llvm.org/llvm.sh \
+  && chmod +x llvm.sh \
+  && ./llvm.sh 18
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+  && apt-get -y install --no-install-recommends \
+  clang-format-18 \
+  clang-tidy-18
