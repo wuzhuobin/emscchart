@@ -7,6 +7,12 @@
 namespace emscchart {
 struct Dataset {
   std::string type;
+  struct Data {
+    int x;
+    int y;
+    int r;
+  };
+  std::vector<Data> data;
 };
 using Label = std::string;
 struct Data {

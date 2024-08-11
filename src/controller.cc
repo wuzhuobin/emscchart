@@ -6,6 +6,11 @@
 #include "line.h"
 #include "point.h"
 #include "radar.h"
+#include "sdl2_rendering_context.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_stdinc.h>
+#include <SDL2/SDL_video.h>
 #include <algorithm>
 #include <functional>
 #include <iterator>
@@ -13,13 +18,26 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+
 using emscchart::Config;
 using emscchart::RadarController;
 
-emscchart::Chart::Chart(std::string const& item,
-                        Configuration const& user_config)
-    : config_(std::make_unique<Config>(user_config)) {
-  (void)item;
+namespace {
+auto GetRendererFromWindow(Uint32 window_id) -> SDL_Renderer& {
+  auto* window = SDL_GetWindowFromID(window_id);
+  return *SDL_GetRenderer(window);
+}
+}  // namespace
+
+emscchart::Chart::Chart(unsigned int item, Configuration const& user_config)
+    : Chart(
+          item, user_config,
+          std::make_unique<SDL2RenderingContext>(GetRendererFromWindow(item))) {
+}
+
+emscchart::Chart::Chart(unsigned int item, Configuration const& user_config,
+                        std::unique_ptr<CanvasRenderingContext> ctx)
+    : config_(std::make_unique<Config>(user_config)), ctx_(std::move(ctx)) {
   // const initialCanvas = getCanvas(item);
   // const existingChart = getChart(initialCanvas);
   // if (existingChart) {
@@ -36,6 +54,59 @@ emscchart::Chart::Chart(std::string const& item,
 
   // this.platform = new (config.platform || _detectPlatform(initialCanvas))();
   // this.platform.updateConfig(config);
+
+  // const context = this.platform.acquireContext(initialCanvas,
+  // options.aspectRatio); const canvas = context && context.canvas; const
+  // height = canvas && canvas.height; const width = canvas && canvas.width;
+
+  // this.id = uid();
+  // this.canvas = canvas;
+  // this.width = width;
+  // this.height = height;
+  // this._options = options;
+  // // Store the previously used aspect ratio to determine if a resize
+  // // is needed during updates. Do this after _options is set since
+  // // aspectRatio uses a getter
+  // this._aspectRatio = this.aspectRatio;
+  // this._layers = [];
+  // this._metasets = [];
+  // this._stacks = undefined;
+  // this.boxes = [];
+  // this.currentDevicePixelRatio = undefined;
+  // this.chartArea = undefined;
+  // this._active = [];
+  // this._lastEvent = undefined;
+  // this._listeners = {};
+  // /** @type {?{attach?: function, detach?: function, resize?: function}} */
+  // this._responsiveListeners = undefined;
+  // this._sortedMetasets = [];
+  // this.scales = {};
+  // this._plugins = new PluginService();
+  // this.$proxies = {};
+  // this._hiddenIndices = {};
+  // this.attached = false;
+  // this._animationsDisabled = undefined;
+  // this.$context = undefined;
+  // this._doResize = debounce(mode => this.update(mode), options.resizeDelay ||
+  // 0); this._dataChanges = [];
+
+  // // Add the chart instance to the global namespace
+  // instances[this.id] = this;
+
+  // if (!context || !canvas) {
+  //   // The given item is not a compatible context2d element, let's return
+  //   before finalizing
+  //   // the chart initialization but after setting basic chart / controller
+  //   properties that
+  //   // can help to figure out that the chart is not valid (e.g chart.canvas
+  //   !== null);
+  //   // https://github.com/chartjs/Chart.js/issues/2807
+  //   console.error("Failed to create chart: can't acquire context from the
+  //   given item"); return;
+  // }
+
+  // animator.listen(this, 'complete', onAnimationsComplete);
+  // animator.listen(this, 'progress', onAnimationProgress);
 
   Initialize();
   if (attached_) {
@@ -63,7 +134,7 @@ void emscchart::Chart::Initialize() {
   //   return this;
 }
 
-void emscchart::Chart::Update() {
+void emscchart::Chart::Update(UpdateMode mode) {
   config_->Update();
   // const options = this._options =
   // config.createResolver(config.chartOptionScopes(), this.getContext());
@@ -99,10 +170,9 @@ void emscchart::Chart::Update() {
                      [&controller](auto new_controller) {
                        return &(new_controller.get()) == controller.get();
                      }) == new_controllers.cend();
-    (void)reset;
     // New controllers will be reset after the layout pass, so we only want to
     // modify elements added to new datasets
-    //   controller.buildOrUpdateElements(reset);
+    controller->BuildOrUpdateElements(reset);
     //   minPadding = Math.max(+controller.getMaxOverflow(), minPadding);
   }
   // minPadding = this._minPadding = options.layout.autoPadding ? minPadding :
@@ -117,7 +187,7 @@ void emscchart::Chart::Update() {
   //   });
   // }
 
-  // this._updateDatasets(mode);
+  UpdateDatasets(mode);
 
   // // Do this before render so that any plugins that need final scale updates
   // can use it this.notifyPlugins('afterUpdate', {mode});
@@ -184,6 +254,11 @@ void emscchart::Chart::Draw() {
   // this.notifyPlugins('afterDraw');
 }
 
+auto emscchart::Chart::Ctx() const -> CanvasRenderingContext const& {
+  return *ctx_;
+}
+
+auto emscchart::Chart::Ctx() -> CanvasRenderingContext& { return *ctx_; }
 auto emscchart::Chart::Data() const -> emscchart::Data const& {
   return config_->Data();
 }
@@ -288,7 +363,7 @@ auto emscchart::Chart::BuildOrUpdateControllers()
   return new_controllers;
 }
 
-void emscchart::Chart::UpdateDatasets() {
+void emscchart::Chart::UpdateDatasets(UpdateMode mode) {
   //   if (this.notifyPlugins('beforeDatasetsUpdate', {mode, cancelable: true})
   //   === false) { return;
   // }

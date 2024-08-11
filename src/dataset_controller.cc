@@ -12,6 +12,7 @@ emscchart::DatasetController::ElementFactory
 emscchart::DatasetController::DatasetController(Chart& chart,
                                                 unsigned int dataset_index)
     : chart_(chart),
+      ctx_(chart.Ctx()),
       index_(dataset_index),
       cached_meta_(GetMeta()),
       dataset_element_type_(dataset_element_factory_),
@@ -49,32 +50,36 @@ void emscchart::DatasetController::Initialize() {
 }
 
 void emscchart::DatasetController::Draw() {
-  // const ctx = this._ctx;
+  auto& ctx = ctx_;
   // const chart = this.chart;
-  // const meta = this._cachedMeta;
+  auto const& meta = this->cached_meta_;
   // const elements = meta.data || [];
+  auto const& elements = meta.data;
   // const area = chart.chartArea;
   // const active = [];
   // const start = this._drawStart || 0;
+  auto start = 0U;
   // const count = this._drawCount || (elements.length - start);
+  auto count = elements.size() - start;
   // const drawActiveElementsOnTop = this.options.drawActiveElementsOnTop;
   // let i;
 
-  if (cached_meta_._dataset) {
+  if (cached_meta_.dataset) {
     // cached_meta_.dataset.draw(ctx, area, start, count);
   }
 
-  // for (i = start; i < start + count; ++i) {
-  //   const element = elements[i];
-  //   if (element.hidden) {
-  //     continue;
-  //   }
-  //   if (element.active && drawActiveElementsOnTop) {
-  //     active.push(element);
-  //   } else {
-  //     element.draw(ctx, area);
-  //   }
-  // }
+  for (auto i = start; i < start + count; ++i) {
+    //   const element = elements[i];
+    auto const& element = elements[i];
+    //   if (element.hidden) {
+    //     continue;
+    //   }
+    //   if (element.active && drawActiveElementsOnTop) {
+    //     active.push(element);
+    //   } else {
+    element->Draw(ctx, {});
+    //   }
+  }
 
   // for (i = 0; i < active.length; ++i) {
   //   active[i].draw(ctx, area);
@@ -82,21 +87,20 @@ void emscchart::DatasetController::Draw() {
 }
 
 void emscchart::DatasetController::AddElements() {
-  // this._dataCheck();
+  DataCheck();
 
-  if (data_element_type_) {
-    // meta.dataset = new this.datasetElementType();
-    cached_meta_.dataset = data_element_type_();
+  if (dataset_element_type_) {
+    cached_meta_.dataset = dataset_element_type_();
   }
 }
 
-void emscchart::DatasetController::BuildOrUpdateElements(bool resetNewElement) {
-  (void)resetNewElement;
-  // const meta = this._cachedMeta;
-  // const dataset = this.getDataset();
+void emscchart::DatasetController::BuildOrUpdateElements(
+    bool resets_new_element) {
+  auto& meta = CachedMeta();
+  auto& dataset = GetDataset();
   // let stackChanged = false;
 
-  // this._dataCheck();
+  DataCheck();
 
   // // make sure cached _stacked status is current
   // const oldStacked = meta._stacked;
@@ -110,10 +114,9 @@ void emscchart::DatasetController::BuildOrUpdateElements(bool resetNewElement) {
   //   meta.stack = dataset.stack;
   // }
 
-  // // Re-sync meta data in case the user replaced the data array or if we
-  // missed
-  // // any updates and so make sure that we handle number of datapoints
-  // changing. this._resyncElements(resetNewElements);
+  // Re-sync meta data in case the user replaced the data array or if we missed
+  // any updates and so make sure that we handle number of datapoints changing.
+  ResyncElements(resets_new_element);
 
   // // if stack changed, update stack values for the whole dataset
   // if (stackChanged || oldStacked !== meta._stacked) {
@@ -121,6 +124,166 @@ void emscchart::DatasetController::BuildOrUpdateElements(bool resetNewElement) {
   // }
 }
 
+auto emscchart::DatasetController::GetDataset() const
+    -> emscchart::Dataset const& {
+  return chart_.Data().datasets[index_];
+}
+
 auto emscchart::DatasetController::GetMeta() const -> Metaset& {
   return chart_.GetDatasetMeta(index_);
+}
+
+auto emscchart::DatasetController::CachedMeta() const -> Metaset const& {
+  return cached_meta_;
+}
+
+auto emscchart::DatasetController::CachedMeta() -> Metaset& {
+  return cached_meta_;
+}
+
+auto emscchart::DatasetController::Data() const
+    -> std::vector<Dataset::Data> const& {
+  return data_;
+}
+
+auto emscchart::DatasetController::Data() -> std::vector<Dataset::Data>& {
+  return data_;
+}
+
+void emscchart::DatasetController::UpdateElement(Element& element,
+                                                 unsigned int index,
+                                                 Point::Cfg properties,
+                                                 UpdateMode mode) {
+  // if (isDirectUpdateMode(mode)) {
+  //   Object.assign(element, properties);
+  auto& point = static_cast<Point&>(element);
+  point.X(properties.x);
+  point.Y(properties.y);
+  point.Radius(properties.options.radius);
+  // } else {
+  //   this._resolveAnimations(index, mode).update(element, properties);
+  // }
+}
+
+void emscchart::DatasetController::ResyncElements(bool reset_new_element) {
+  // const data = this._data;
+  auto& data = data_;
+  auto& elements = cached_meta_.data;
+
+  // // Apply changes detected through array listeners
+  // for (const [method, arg1, arg2] of this._syncList) {
+  //   this[method](arg1, arg2);
+  // }
+  // this._syncList = [];
+
+  auto num_meta = elements.size();
+  auto num_data = data.size();
+  // const count = Math.min(numData, numMeta);
+
+  // if (count) {
+  //   // TODO: It is not optimal to always parse the old data
+  //   // This is done because we are not detecting direct assignments:
+  //   // chart.data.datasets[0].data[5] = 10;
+  //   // chart.data.datasets[0].data[5].y = 10;
+  //   this.parse(0, count);
+  // }
+
+  if (num_data > num_meta) {
+    InsertElements(num_meta, num_data - num_meta, reset_new_element);
+  } else if (num_data < num_meta) {
+    RemoveElements(num_data, num_meta - num_data);
+  }
+}
+
+void emscchart::DatasetController::DataCheck() {
+  auto const& dataset = GetDataset();
+  // const data = dataset.data || (dataset.data = []);
+  auto const& data = dataset.data;
+  // const _data = this._data;
+
+  // // In order to correctly handle data addition/deletion animation (and thus
+  // simulate
+  // // real-time charts), we need to monitor these data modifications and
+  // synchronize
+  // // the internal metadata accordingly.
+
+  // if (isObject(data)) {
+  //   const meta = this._cachedMeta;
+  //   this._data = convertObjectDataToArray(data, meta);
+  // } else if (_data !== data) {
+  //   if (_data) {
+  //     // This case happens when the user replaced the data array instance.
+  //     unlistenArrayEvents(_data, this);
+  //     // Discard old parsed data and stacks
+  //     const meta = this._cachedMeta;
+  //     clearStacks(meta);
+  //     meta._parsed = [];
+  //   }
+  //   if (data && Object.isExtensible(data)) {
+  //     listenArrayEvents(data, this);
+  //   }
+  //   this._syncList = [];
+  //   this._data = data;
+  data_ = data;
+  // }
+}
+
+void emscchart::DatasetController::InsertElements(unsigned int start,
+                                                  unsigned int count,
+                                                  bool reset_new_elements) {
+  auto& meta = cached_meta_;
+  auto& data = meta.data;
+  auto end = start + count;
+  // let i;
+
+  // const move = (arr) => {
+  //   arr.length += count;
+  //   for (i = arr.length - 1; i >= end; i--) {
+  //     arr[i] = arr[i - count];
+  //   }
+  // };
+  // move(data);
+
+  for (auto i = start; i < end; ++i) {
+    // data[i] = new this.dataElementType();
+    data.emplace_back(data_element_type_());
+  }
+
+  // if (this._parsing) {
+  //   move(meta._parsed);
+  // }
+  // this.parse(start, count);
+
+  if (reset_new_elements) {
+    UpdateElements(data, start, count, UpdateMode::kReset);
+  }
+}
+
+void emscchart::DatasetController::RemoveElements(unsigned int start,
+                                                  unsigned int count) {
+  // const meta = this._cachedMeta;
+  // const data = meta.data;
+  // const end = start + count;
+  // let i;
+
+  // const move = (arr) => {
+  //   arr.length += count;
+  //   for (i = arr.length - 1; i >= end; i--) {
+  //     arr[i] = arr[i - count];
+  //   }
+  // };
+  // move(data);
+
+  // for (i = start; i < end; ++i) {
+  //   data[i] = new this.dataElementType();
+  // }
+
+  // if (this._parsing) {
+  //   move(meta._parsed);
+  // }
+  // this.parse(start, count);
+
+  // if (resetNewElements) {
+  //   this.updateElements(data, start, count, 'reset');
+  // }
 }

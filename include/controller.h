@@ -6,6 +6,7 @@
 #include <vector>
 namespace emscchart {
 class DatasetController;
+class CanvasRenderingContext;
 class Element;
 struct Metaset {
   std::string type;
@@ -25,14 +26,19 @@ struct Metaset {
 
 class Chart {
  public:
-  Chart(std::string const& item, Configuration const& user_config);
+  Chart(unsigned int item, Configuration const& user_config);
+  Chart(unsigned int item, Configuration const& user_config,
+        std::unique_ptr<CanvasRenderingContext> ctx);
   ~Chart();
   void Initialize();
 
-  void Update();
+  enum class UpdateMode : std::uint8_t { kDefault, kReset };
+  void Update(UpdateMode mode = UpdateMode::kDefault);
   void Render();
   void Draw();
 
+  [[nodiscard]] auto Ctx() const -> CanvasRenderingContext const&;
+  [[nodiscard]] auto Ctx() -> CanvasRenderingContext&;
   [[nodiscard]] auto Data() const -> emscchart::Data const&;
   [[nodiscard]] auto Data() -> emscchart::Data&;
   void Data(emscchart::Data const& data);
@@ -52,7 +58,7 @@ class Chart {
       -> std::vector<std::reference_wrapper<DatasetController>>;
 
  private:
-  void UpdateDatasets();
+  void UpdateDatasets(UpdateMode mode);
   void UpdateDataset();
   void UpdateScales();
   void UpdateMetasets();
@@ -67,6 +73,7 @@ class Chart {
       -> std::vector<std::reference_wrapper<Metaset>>;
 
   std::unique_ptr<Config> config_;
+  std::unique_ptr<CanvasRenderingContext> ctx_;
   std::vector<Metaset> metasets_;
   std::vector<std::reference_wrapper<Metaset>> sorted_metasets_;
   Context context_;

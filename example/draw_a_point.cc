@@ -1,4 +1,3 @@
-
 #include "canvas.h"
 #include "helper.h"
 #include "sdl2_rendering_context.h"
