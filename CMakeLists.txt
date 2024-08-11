@@ -35,6 +35,9 @@ if (COMPILE_WARNING_AS_ERROR)
                                $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Werror>)
 endif ()
 
+include(nlohmann_json)
+target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json)
+
 if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
 
     message(STATUS "Emscripten detected")
