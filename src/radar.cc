@@ -32,3 +32,7 @@ void emscchart::RadarController::Update(UpdateMode mode) {
   // // Update Points
   // this.updateElements(points, 0, points.length, mode);
 }
+
+void emscchart::RadarController::UpdateElements(
+    std::vector<std::unique_ptr<Element>>& elements, unsigned int start,
+    unsigned int count, UpdateMode mode) {}

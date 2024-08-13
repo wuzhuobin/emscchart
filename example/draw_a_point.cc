@@ -1,12 +1,9 @@
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_video.h>
-
-// emscchart
 #include "canvas.h"
 #include "helper.h"
 #include "sdl2_rendering_context.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_video.h>
 
 auto main(int argc, char* argv[]) -> int {
   (void)argc;

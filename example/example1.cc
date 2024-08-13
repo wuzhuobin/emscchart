@@ -3,11 +3,11 @@
 // University of Illinois/NCSA Open Source License.  Both these licenses can be
 // found in the LICENSE file.
 
-#include <SDL2/SDL.h>
-#include <assert.h>
-#include <array>
 #include "controller.h"
 #include "helper.h"
+#include <SDL2/SDL.h>
+#include <array>
+#include <assert.h>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>

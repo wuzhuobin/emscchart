@@ -1,4 +1,4 @@
-include(googletest)
+include(gtest)
 
 file(GLOB_RECURSE TEST_SRC ${PROJECT_SOURCE_DIR}/test/*.[c|h]*)
 

@@ -43,7 +43,8 @@
 				"eamodio.gitlens",
 				"cschlosser.doxdocgen",
 				"cheshirekow.cmake-format",
-				"github.vscode-github-actions"
+				"github.vscode-github-actions",
+				"matepek.vscode-catch2-test-adapter",
 			]
 		}
 	},
