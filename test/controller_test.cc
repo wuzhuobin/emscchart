@@ -38,7 +38,7 @@ TEST_F(
     BuildOrUpdateControllersShouldBuildRadarControllerWhenConfigurationIsNotValidDatasetTypeIsEmpty) {
   // Arrange
   Chart chart{0, Configuration{.type = "abc",
-                               .data = {.datasets = {{}}, .labels = {}},
+                               .data = {.labels = {}, .datasets = {{}}},
                                .option = {}}};
 
   // Act & Assert
@@ -52,7 +52,7 @@ TEST_F(ChartTest,
   Chart chart{
       0, Configuration{
              .type = {},
-             .data = {.datasets = {{.type = "abc", .data = {}}}, .labels = {}},
+             .data = {.labels = {}, .datasets = {{.type = "abc", .data = {}}}},
              .option = {}}};
 
   // Act & Assert
@@ -85,7 +85,7 @@ TEST_P(
   // Arrange
   auto [type, cast] = GetParam();
   Chart chart{0, Configuration{.type = std::string(type),
-                               .data = {.datasets = {{}}, .labels = {}},
+                               .data = {.labels = {}, .datasets = {{}}},
                                .option = {}}};
 
   // Act
@@ -105,8 +105,8 @@ TEST_P(
   Chart chart{
       0, Configuration{
              .type = {},
-             .data = {.datasets = {{.type = std::string(type), .data = {}}},
-                      .labels = {}},
+             .data = {.labels = {},
+                      .datasets = {{.type = std::string(type), .data = {}}}},
              .option = {}}};
 
   // Act

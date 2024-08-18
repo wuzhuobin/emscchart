@@ -8,9 +8,6 @@ using emscchart::Options;
 
 namespace {
 void initOptions(Configuration& config) {
-  config.option = Options{};
-  //       const options = config.options || (config.options = {});
-
   //   options.plugins = valueOrDefault(options.plugins, {});
   //   options.scales = mergeScaleConfig(config, options);
 }
@@ -21,7 +18,17 @@ auto initConfig(Configuration&& config) -> Configuration {
   return config;
 }
 }  // namespace
-Config::Config(Configuration config) : config_(initConfig(std::move(config))) {}
+
+// const config = {
+//   type: 'line',
+//   data: {},
+//   options: {},
+//   plugins: []
+// }
+Config::Config(Configuration config) : config_(initConfig(std::move(config))) {
+  // this._scopeCache = new Map();
+  // this._resolverCache = new Map();
+}
 
 void emscchart::Config::Update() {
   ClearCache();

@@ -2,7 +2,7 @@
 #define EMSCCHART_DATASET_CONTROLLER_H
 
 #include "config.h"
-#include "point.h"
+#include <nlohmann/json.hpp>
 #include <functional>
 #include <memory>
 
@@ -39,7 +39,7 @@ class DatasetController {
 
  protected:
   virtual void UpdateElement(Element& element, unsigned int index,
-                             Point::Cfg properties, UpdateMode mode);
+                             nlohmann::json const& properties, UpdateMode mode);
   void ResyncElements(bool reset_new_element);
 
  private:

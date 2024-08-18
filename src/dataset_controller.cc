@@ -1,6 +1,7 @@
 #include "dataset_controller.h"
 #include "controller.h"
 #include "element.h"
+#include "geometric.h"
 #include <functional>
 
 using emscchart::Element;
@@ -150,16 +151,12 @@ auto emscchart::DatasetController::Data() -> std::vector<Dataset::Data>& {
   return data_;
 }
 
-void emscchart::DatasetController::UpdateElement(Element& element,
-                                                 unsigned int index,
-                                                 Point::Cfg properties,
-                                                 UpdateMode mode) {
+void emscchart::DatasetController::UpdateElement(
+    Element& element, unsigned int index, nlohmann::json const& properties,
+    UpdateMode mode) {
   // if (isDirectUpdateMode(mode)) {
   //   Object.assign(element, properties);
-  auto& point = static_cast<Point&>(element);
-  point.X(properties.x);
-  point.Y(properties.y);
-  point.Radius(properties.options.radius);
+  element.Assign(properties);
   // } else {
   //   this._resolveAnimations(index, mode).update(element, properties);
   // }

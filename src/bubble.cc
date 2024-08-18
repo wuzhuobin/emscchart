@@ -2,7 +2,8 @@
 #include "controller.h"
 
 void emscchart::BubbleController::Update(UpdateMode mode) {
-  UpdateElements(CachedMeta().data, 0, CachedMeta().data.size(), mode);
+  auto const& points = CachedMeta().data;
+  UpdateElements(CachedMeta().data, 0, points.size(), mode);
 }
 
 void emscchart::BubbleController::UpdateElements(
@@ -35,11 +36,6 @@ void emscchart::BubbleController::UpdateElements(
     //     }
     //   }
 
-    Point::Cfg properties(
-        Point::Props{{.x = static_cast<unsigned int>(Data()[i].x),
-                      .y = static_cast<unsigned int>(Data()[i].y)}},
-        Point::Options{
-            .options = {{{}, static_cast<unsigned int>(Data()[i].r), {}}, {}}});
-    UpdateElement(*point, i, properties, mode);
+    UpdateElement(*point, i, Data()[i], mode);
   }
 }

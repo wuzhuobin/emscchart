@@ -1,6 +1,8 @@
 #include <string>
 #ifndef EMSCCHART_ELEMENT_H_
 #define EMSCCHART_ELEMENT_H_
+
+#include <nlohmann/json.hpp>
 namespace emscchart {
 class CanvasRenderingContext;
 namespace geometric {
@@ -9,9 +11,14 @@ struct ChartArea;
 class Element {
  public:
   virtual ~Element() = default;
+  /**
+   * @brief Mimic `Object.assign` in javascript.
+   *
+   * @param json
+   */
+  virtual void Assign(nlohmann::json const& json) = 0;
   virtual void Draw(CanvasRenderingContext& ctx,
                     geometric::ChartArea const& area) const = 0;
-
   void X(unsigned int point_x) { x_ = point_x; }
   [[nodiscard]] auto X() const -> unsigned int { return x_; }
   void Y(unsigned int point_y) { y_ = point_y; }

@@ -7,6 +7,14 @@ emscchart::Point::Point(Cfg const& cfg) : Props(cfg), Options(cfg) {
   Y(cfg.y);
 }
 
+void emscchart::Point::Assign(nlohmann::json const& json) {
+  x = json["x"];
+  X(x);
+  y = json["y"];
+  Y(y);
+  Radius(json["r"]);
+}
+
 void emscchart::Point::Draw(CanvasRenderingContext& ctx,
                             geometric::ChartArea const& area) const {
   (void)area;

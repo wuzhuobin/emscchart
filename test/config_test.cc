@@ -6,20 +6,40 @@ using namespace emscchart;
 
 class ConfigTest : public testing::Test {};
 
-TEST_F(ConfigTest, UpdateShouldResetOptions) {
-  using OptionsByte = std::array<std::byte, sizeof(Options)>;
+TEST_F(ConfigTest, ConstructorShouldWorkAsExpected) {
+  // Arrange
 
-  Config config{Configuration()};
-  config.Update();
-  auto updated_options_bytes =
-      reinterpret_cast<OptionsByte const&>(config.Options());
+  // Act
+  Config const config({
+      .type = "bubble",
+      .data = {.labels = {{"a"}},
+               .x_labels = {},
+               .y_labels = {},
+               .datasets = {{.type = {},
+                             .data = {{
+                                          {"x", 0U},
+                                          {"y", 3U},
+                                          {"r", 0U},
+                                      },
+                                      {
 
-  Options initial_options{};
-  auto initial_options_bytes =
-      reinterpret_cast<OptionsByte const&>(initial_options);
+                                          {"x", 1U},
+                                          {"y", 3U},
+                                          {"r", 2U},
+                                      }}}}},
+      .option = {},
+  });
 
-  // for (auto i = 0; i < sizeof(Options); i++) {
-  //   EXPECT_EQ(updated_options_bytes[i], initial_options_bytes[i])
-  //       << "where i is " << i;
-  // }
+  // Assert
+  EXPECT_EQ(config.Type(), "bubble");
+  auto const& data = config.Data();
+  EXPECT_EQ(data.labels[0], "a");
+  auto const& datasets = data.datasets;
+  EXPECT_TRUE(datasets[0].type.empty());
+  EXPECT_EQ(datasets[0].data[0]["x"], 0U);
+  EXPECT_EQ(datasets[0].data[0]["y"], 3U);
+  EXPECT_EQ(datasets[0].data[0]["r"], 0U);
+  EXPECT_EQ(datasets[0].data[1]["x"], 1U);
+  EXPECT_EQ(datasets[0].data[1]["y"], 3U);
+  EXPECT_EQ(datasets[0].data[1]["r"], 2U);
 }

@@ -13,6 +13,7 @@ class Point
   using Options = OptionMixin<types::PointOptions, types::PointHoverOptions>;
   struct Cfg : public Props, public Options {};
   explicit Point(Cfg const& cfg = {});
+  void Assign(nlohmann::json const& json) override;
   void Draw(CanvasRenderingContext& ctx,
             geometric::ChartArea const& area) const override;
 

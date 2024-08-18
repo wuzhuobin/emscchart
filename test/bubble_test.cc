@@ -15,8 +15,8 @@ TEST_F(BubbleControllerTest, IdShouldBeCorrect) {
 
 TEST_F(BubbleControllerTest, ConstructorShouldWork) {
   Chart chart{0, Configuration{.type = {},
-                               .data = {.datasets = {{.type = {}, .data = {}}},
-                                        .labels = {}},
+                               .data = {.labels = {},
+                                        .datasets = {{.type = {}, .data = {}}}},
                                .option = {}}};
   EXPECT_NO_THROW(BubbleController const controller(chart, 0));
 }

@@ -1,36 +1,32 @@
 #ifndef EMSCCHART_CONFIG_H_
 #define EMSCCHART_CONFIG_H_
 
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 
 namespace emscchart {
 struct Dataset {
   std::string type;
-  struct Data {
-    int x;
-    int y;
-    int r;
-  };
+  using Data = nlohmann::json;
+
   std::vector<Data> data;
 };
 using Label = std::string;
 struct Data {
-  std::vector<Dataset> datasets;
   std::vector<Label> labels;
+  std::vector<Label> x_labels;
+  std::vector<Label> y_labels;
+  std::vector<Dataset> datasets;
 };
-struct Options {
-  struct {
-  } plugins;
-  struct {
-  } scales;
-};
+
+using Options = nlohmann::json;
 struct Configuration {
-  // platform;
   std::string type;
   Data data;
   Options option;
   // plugins;
+  // platform;
 };
 
 class Config {

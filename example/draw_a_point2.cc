@@ -19,11 +19,18 @@ auto main(int argc, char* argv[]) -> int {
 
   emscchart::Chart chart(
       SDL_GetWindowID(window),
-      emscchart::Configuration{"bubble",
-                               {.datasets = {{{"point", {{100, 100, 10}}},
-                                              {"point", {{100, 100, 30}}}}},
-                                .labels = {}},
-                               {}});
+      emscchart::Configuration{
+          .type = "bubble",
+          .data =
+              {
+                  .labels = {},
+                  .x_labels = {},
+                  .y_labels = {},
+                  .datasets = {{.type = {},
+                                .data = {{{"x", 100}, {"y", 100}, {"r", 10}},
+                                         {{"x", 100}, {"y", 100}, {"r", 30}}}}},
+              },
+          .option = {}});
 
   emscchart::DatasetController::data_element_factory_ =
       &std::make_unique<emscchart::Point>;
