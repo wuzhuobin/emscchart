@@ -50,6 +50,13 @@ void emscchart::DatasetController::Initialize() {
   // }
 }
 
+void emscchart::DatasetController::UpdateIndex(unsigned int dataset_index) {
+  if (index_ != dataset_index) {
+    //   clearStacks(this._cachedMeta);
+  }
+  index_ = dataset_index;
+}
+
 void emscchart::DatasetController::Draw() {
   auto& ctx = ctx_;
   // const chart = this.chart;
@@ -88,10 +95,11 @@ void emscchart::DatasetController::Draw() {
 }
 
 void emscchart::DatasetController::AddElements() {
+  auto& meta = CachedMeta();
   DataCheck();
 
   if (dataset_element_type_) {
-    cached_meta_.dataset = dataset_element_type_();
+    meta.dataset = dataset_element_type_();
   }
 }
 
@@ -127,7 +135,7 @@ void emscchart::DatasetController::BuildOrUpdateElements(
 
 auto emscchart::DatasetController::GetDataset() const
     -> emscchart::Dataset const& {
-  return chart_.Data().datasets[index_];
+  return chart_.Data().datasets.at(index_);
 }
 
 auto emscchart::DatasetController::GetMeta() const -> Metaset& {

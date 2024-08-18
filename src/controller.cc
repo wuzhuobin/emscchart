@@ -109,9 +109,9 @@ emscchart::Chart::Chart(unsigned int item, Configuration const& user_config,
   // animator.listen(this, 'progress', onAnimationProgress);
 
   Initialize();
-  if (attached_) {
-    Update();
-  }
+  // if (attached_) {
+  Update();
+  // }
 }
 
 emscchart::Chart::~Chart() = default;

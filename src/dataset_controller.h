@@ -20,6 +20,7 @@ class DatasetController {
   DatasetController(Chart& chart, unsigned int dataset_index);
   virtual ~DatasetController() = default;
   void Initialize();
+  void UpdateIndex(unsigned int dataset_index);
   enum class UpdateMode : std::uint8_t { kDefault, kReset };
   void Update() { Update(UpdateMode::kDefault); }
   virtual void Update(UpdateMode mode) = 0;

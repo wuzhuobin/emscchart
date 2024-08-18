@@ -1,6 +1,15 @@
 #include "bubble.h"
 #include "controller.h"
 
+emscchart::BubbleController::BubbleController(Chart& chart,
+                                              unsigned int dataset_index)
+    : DatasetController(chart, dataset_index) {}
+
+void emscchart::BubbleController::Initialize() {
+  // this.enableOptionSharing = true;
+  DatasetController::Initialize();
+}
+
 void emscchart::BubbleController::Update(UpdateMode mode) {
   auto const& points = CachedMeta().data;
   UpdateElements(CachedMeta().data, 0, points.size(), mode);
