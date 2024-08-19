@@ -59,7 +59,7 @@ class Chart {
 
  private:
   void UpdateDatasets(UpdateMode mode);
-  void UpdateDataset();
+  void UpdateDataset(unsigned int dataset_index, UpdateMode mode);
   void UpdateScales();
   void UpdateMetasets();
 

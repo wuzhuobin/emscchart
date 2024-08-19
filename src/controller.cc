@@ -372,15 +372,29 @@ void emscchart::Chart::UpdateDatasets(UpdateMode mode) {
   //   this.getDatasetMeta(i).controller.configure();
   // }
 
-  // for (let i = 0, ilen = this.data.datasets.length; i < ilen; ++i) {
-  //   this._updateDataset(i, isFunction(mode) ? mode({datasetIndex : i}) :
-  //   mode);
-  // }
+  for (auto i = 0U; i < Data().datasets.size(); ++i) {
+    //   this._updateDataset(i, isFunction(mode) ? mode({datasetIndex : i}) :
+    //   mode);
+    UpdateDataset(i, mode);
+  }
 
   // this.notifyPlugins('afterDatasetsUpdate', {mode});
 }
 
-void emscchart::Chart::UpdateDataset() {}
+void emscchart::Chart::UpdateDataset(unsigned int dataset_index,
+                                     UpdateMode mode) {
+  auto& meta = GetDatasetMeta(dataset_index);
+  // const args = {meta, index, mode, cancelable: true};
+
+  // if (this.notifyPlugins('beforeDatasetUpdate', args) === false) {
+  //   return;
+  // }
+
+  // meta.controller._update(mode);
+
+  // args.cancelable = false;
+  // this.notifyPlugins('afterDatasetUpdate', args);
+}
 
 void emscchart::Chart::UpdateMetasets() {
   // const metasets = this._metasets;
